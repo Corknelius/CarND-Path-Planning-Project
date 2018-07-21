@@ -315,7 +315,7 @@ int main() {
                         double traffic_distance = sensor_fusion[i][6];
                         int traffic_lane = find_lane(traffic_d);
                         
-                        if (traffic_distance < 500) {
+                        if (traffic_distance < 300) {
                             // Sort traffic into their respective lanes
                             if (car_lane == traffic_lane) {
                                 // Same Lanes
@@ -415,7 +415,7 @@ int main() {
                     // Initialize costs: 0 = keep, 1 = left, 2 = right
                     vector<int> costs = {0,0,0};
                     
-                    double SPEED_LIMIT = 43.8;  // Roughly translates to 48mph
+                    double SPEED_LIMIT = 43.8;  // Not exactly 43.8, need to figure out why it's closer to 47.
                     double FREE_ACCEL = 0.2;    // When no cars in front
                     double CLOSE_ACCEL =0.05;   // When other cars are nearby
                     
@@ -448,6 +448,7 @@ int main() {
                         costs[2] -= 3; // Incentivise going into a faster lane
                     }
                     
+                    // Step 3: Process Costs into Behaviors
                     // Pick minimum cost to be the behavior
                     int behavior = 0;
                     int min_cost = 9999;
@@ -460,7 +461,6 @@ int main() {
                         }
                     }
                     
-                    
                     cout<<endl;
                     cout<<"Cost Keep:"<< costs[0] <<endl;
                     cout<<"Cost Change Left:"<< costs[1] <<endl;
@@ -469,9 +469,7 @@ int main() {
                     cout<<"Min Cost: "<<  min_cost <<endl;
                     cout<<endl;
                     
-
-                    
-                    // Process Costs into Behaviors
+                   
                     if (behavior == 0) {
                         // Set Speed
                         if (closest_same_front_dist < 30) {
@@ -497,31 +495,10 @@ int main() {
                                 cout << "Maintaining speed: " << car_speed << endl;
                             }
                         }
-                        // Set Position
-                        /*
-                        if (car_lane == 0) {
-                            target_d = 2.0;
-                        } else if (car_lane == 1) {
-                            target_d = 6.0;
-                        } else if (car_lane == 2) {
-                            target_d = 10.0;
-                        } else {
-                            target_d = car_d;
-                        }
-                        */
+
                         target_d = 2.0 + (car_lane * 4.0);
                         
                     } else if (behavior == 1) {
-                        // Set Speed
-                        /*
-                        if ((closest_same_front_dist) < 40 and (closest_left_front_dist > 125)) {
-                            target_v += 0.2;
-                        } else {
-                            if (car_speed < 21.0) {
-                                target_v += 0.2; // Speed up when changing lanes
-                            }
-                        }
-                        */
                         // Set Position
                         if (car_lane == 0) {
                             target_d = 2.0; // Shouldn't be possible, but just in case...
@@ -533,16 +510,6 @@ int main() {
                             target_d = car_d;
                         }
                     } else if (behavior == 2) {
-                        // Set Speed
-                        /*
-                        if ((closest_same_front_dist) < 40 and (closest_right_front_dist > 100)) {
-                            target_v = closest_right_front_v;
-                        } else {
-                            if (car_speed < 21.0) {
-                                target_v += 0.2; // Speed up when changing lanes
-                            }
-                        }
-                        */
                         // Set Position
                         if (car_lane == 0) {
                             target_d = 6.0;
@@ -557,15 +524,8 @@ int main() {
                         cout<<"Something is wrong, behavior is : " << behavior;
                     }
 
-
-                    /*
-                     * Add points from previous path
-                     */
-
-                    // form the path and add to path
-
-                    // TODO: change previous_path_x.size() = min(previous_path_x.size(), max_points_from_prev_path)
-
+                    // Step 4: Generate path points
+                    
                     vector<double> spline_x;
                     vector<double> spline_y;
 
@@ -642,11 +602,6 @@ int main() {
                         next_x_vals.push_back(previous_path_x[i]);
                         next_y_vals.push_back(previous_path_y[i]);
                     }
-
-                    /*
-                     * TODO: Add each point we have on the spline to next_x_vals, next_y_vals
-                     */
-
 
 
                     // Set horizon
